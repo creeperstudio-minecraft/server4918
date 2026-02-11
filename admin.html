@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ • Только ссылки</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Стили полностью как в прошлой версии, оставляем без изменений */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+        }
+        body {
+            background: #f3f3f3;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .admin-wrapper {
+            max-width: 800px;
+            width: 100%;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.02), 0 2px 4px rgba(0,0,0,0.02);
+            padding: 28px 32px;
+            border: 1px solid rgba(0,0,0,0.03);
+            margin-bottom: 24px;
+        }
+        h2 {
+            font-weight: 600;
+            font-size: 24px;
+            color: #1e1e1e;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        h2 i {
+            color: #0078D7;
+        }
+        .input-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #3b3b3b;
+            margin-bottom: 6px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 14px;
+            font-size: 15px;
+            background: white;
+            transition: 0.15s;
+            outline: none;
+        }
+        input:focus, textarea:focus {
+            border-color: #0078D7;
+            box-shadow: 0 0 0 3px rgba(0,120,215,0.08);
+        }
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+        .btn {
+            background: #0078D7;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0,120,215,0.2);
+        }
+        .btn:hover {
+            background: #005a9e;
+            box-shadow: 0 8px 16px rgba(0,120,215,0.25);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #d0d0d0;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 15px;
+            color: #3a3a3a;
+            display: flex;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .logout-btn:hover {
+            background: #f0f0f0;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .error-message {
+            background: #ffdce0;
+            border-radius: 12px;
+            padding: 12px 18px;
+            color: #a80000;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+        .info-message {
+            background: #e1eff9;
+            border-radius: 12px;
+            padding: 12px 18px;
+            color: #004b7c;
+            margin-bottom: 18px;
+        }
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- БЛОК АВТОРИЗАЦИИ (полностью идентичен) -->
+        <div id="login-form-container" class="card">
+            <h2><i class="fas fa-lock"></i> Вход в админ-панель</h2>
+            <div id="login-error" class="error-message" style="display: none;"></div>
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="admin@example.com">
+            </div>
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button id="login-btn" class="btn">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </div>
+
+        <!-- АДМИН-ПАНЕЛЬ (БЕЗ ЗАГРУЗКИ ФАЙЛОВ) -->
+        <div id="admin-panel">
+            <div class="card">
+                <div class="admin-header">
+                    <h2><i class="fas fa-edit"></i> Новая публикация</h2>
+                    <button id="logout-btn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+                
+                <div id="post-status" class="info-message" style="display: none;"></div>
+                
+                <form id="post-form">
+                    <div class="input-group">
+                        <label>Заголовок <span style="color:#0078D7;">*</span></label>
+                        <input type="text" id="title" placeholder="Введите заголовок" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Описание</label>
+                        <textarea id="description" placeholder="Текст публикации..."></textarea>
+                    </div>
+                    
+                    <!-- 👇 ВМЕСТО ЗАГРУЗКИ ФАЙЛА - ПОЛЕ ДЛЯ ССЫЛКИ НА ИЗОБРАЖЕНИЕ -->
+                    <div class="input-group">
+                        <label>Ссылка на изображение (необязательно)</label>
+                        <input type="url" id="imageUrl" placeholder="https://... (ImgBB, Cloudinary, и т.д.)">
+                        <small style="color: #6b6b6b; display: block; margin-top: 6px;">
+                            <i class="fas fa-info-circle"></i> Загрузите фото на любой бесплатный хостинг и вставьте ссылку
+                        </small>
+                    </div>
+                    
+                    <!-- 👇 ВМЕСТО ЗАГРУЗКИ ФАЙЛА - ПОЛЕ ДЛЯ ССЫЛКИ НА ФАЙЛ -->
+                    <div class="input-group">
+                        <label>Ссылка на файл для скачивания (необязательно)</label>
+                        <input type="url" id="fileUrl" placeholder="https://... (Google Drive, pCloud, MediaFire)">
+                        <small style="color: #6b6b6b; display: block; margin-top: 6px;">
+                            <i class="fas fa-info-circle"></i> Вставьте публичную ссылку на файл
+                        </small>
+                    </div>
+
+                    <button type="submit" id="publish-btn" class="btn">
+                        <i class="fas fa-cloud-upload-alt"></i> 
+                        <span id="btn-text">Опубликовать</span>
+                        <i id="spinner" class="fas fa-spinner" style="display: none;"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (без Storage) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+    <script>
+        // ========== FIREBASE CONFIG (ВСТАВЬТЕ СВОИ ДАННЫЕ) ==========
+        const firebaseConfig = {
+            apiKey: "ВАШ_API_KEY",
+            authDomain: "ВАШ_AUTH_DOMAIN",
+            projectId: "ВАШ_PROJECT_ID",
+            storageBucket: "ВАШ_STORAGE_BUCKET", // Можно оставить, не используется
+            messagingSenderId: "ВАШ_SENDER_ID",
+            appId: "ВАШ_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // DOM элементы
+        const loginContainer = document.getElementById('login-form-container');
+        const adminPanel = document.getElementById('admin-panel');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        const postForm = document.getElementById('post-form');
+        const publishBtn = document.getElementById('publish-btn');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('spinner');
+        const postStatus = document.getElementById('post-status');
+
+        // ------------------ АВТОРИЗАЦИЯ ------------------
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loginContainer.style.display = 'none';
+                adminPanel.style.display = 'block';
+                loginError.style.display = 'none';
+            } else {
+                loginContainer.style.display = 'block';
+                adminPanel.style.display = 'none';
+            }
+        });
+
+        loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            if (!email || !password) {
+                showLoginError('Заполните оба поля');
+                return;
+            }
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Вход...';
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(() => showLoginError('Неверный email или пароль'))
+                .finally(() => {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
+                });
+        });
+
+        function showLoginError(msg) {
+            loginError.style.display = 'block';
+            loginError.textContent = msg;
+        }
+
+        logoutBtn.addEventListener('click', () => auth.signOut());
+
+        // ------------------ ПУБЛИКАЦИЯ (ТОЛЬКО ССЫЛКИ, БЕЗ STORAGE) ------------------
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value.trim();
+            if (!title) {
+                showStatus('Введите заголовок', 'error');
+                return;
+            }
+
+            publishBtn.disabled = true;
+            btnText.textContent = 'Публикация...';
+            spinner.style.display = 'inline-block';
+
+            const description = document.getElementById('description').value.trim();
+            const imageUrl = document.getElementById('imageUrl').value.trim() || null;
+            const fileUrl = document.getElementById('fileUrl').value.trim() || null;
+
+            try {
+                // Сохраняем пост в Firestore (Storage НЕ ИСПОЛЬЗУЕТСЯ)
+                await db.collection('posts').add({
+                    title: title,
+                    description: description || null,
+                    imageUrl: imageUrl,
+                    fileUrl: fileUrl,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Очистка формы
+                postForm.reset();
+                showStatus('Пост успешно опубликован!', 'success');
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showStatus('Ошибка при публикации.', 'error');
+            } finally {
+                publishBtn.disabled = false;
+                btnText.textContent = 'Опубликовать';
+                spinner.style.display = 'none';
+            }
+        });
+
+        function showStatus(message, type) {
+            postStatus.style.display = 'block';
+            postStatus.textContent = message;
+            postStatus.className = 'info-message';
+            if (type === 'error') {
+                postStatus.style.background = '#ffdce0';
+                postStatus.style.color = '#a80000';
+            } else {
+                postStatus.style.background = '#e1eff9';
+                postStatus.style.color = '#004b7c';
+            }
+            setTimeout(() => {
+                if (postStatus) postStatus.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
