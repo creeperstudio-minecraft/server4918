@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Публикации — Windows Light</title>
+    <!-- Font Awesome 6 (иконки) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Шрифт Segoe UI (или системный) -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f3f3f3;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wrapper {
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        /* Шапка в стиле Windows 10 */
+        .header {
+            background: white;
+            padding: 20px 28px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .header i {
+            color: #0078D7;
+            font-size: 28px;
+        }
+
+        .header h1 {
+            font-weight: 600;
+            font-size: 24px;
+            color: #1e1e1e;
+            letter-spacing: -0.2px;
+        }
+
+        /* Контейнер с карточками */
+        .posts-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Карточка поста */
+        .post-card {
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+            border: 1px solid rgba(0,0,0,0.02);
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .post-card:hover {
+            box-shadow: 0 16px 28px rgba(0,0,0,0.04);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #202020;
+            margin-bottom: 10px;
+        }
+
+        .post-description {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #3a3a3a;
+            margin-bottom: 18px;
+        }
+
+        .post-image {
+            margin: 16px 0 12px;
+            border-radius: 16px;
+            overflow: hidden;
+            max-width: 100%;
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+        }
+
+        .post-image img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            display: block;
+            background: white;
+        }
+
+        .post-file {
+            background: #f5f9ff;
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin: 16px 0 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #e6f0fa;
+            color: #0078D7;
+            transition: background 0.2s;
+        }
+
+        .post-file:hover {
+            background: #e1eff9;
+        }
+
+        .post-file i {
+            font-size: 18px;
+        }
+
+        .post-file a {
+            text-decoration: none;
+            color: #0078D7;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            color: #6b6b6b;
+            font-size: 14px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 18px;
+        }
+
+        .post-meta i {
+            color: #0078D7;
+            font-size: 14px;
+        }
+
+        /* Состояния загрузки / пусто */
+        .loading, .empty {
+            background: white;
+            border-radius: 18px;
+            padding: 48px 24px;
+            text-align: center;
+            color: #6f6f6f;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .loading i, .empty i {
+            font-size: 32px;
+            color: #0078D7;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            body { padding: 16px; }
+            .header { padding: 16px 20px; }
+            .post-card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Шапка -->
+        <div class="header">
+            <i class="fas fa-newspaper"></i>
+            <h1>Публикации</h1>
+        </div>
+
+        <!-- Сюда будут динамически добавляться посты -->
+        <div id="posts-container" class="posts-grid">
+            <div class="loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <p>Загрузка публикаций...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+
+    <script>
+        // ==================== НАСТРОЙКИ FIREBASE ====================
+        // ⚠️ Вставьте сюда конфигурацию вашего проекта Firebase
+        const firebaseConfig = {
+  apiKey: "AIzaSyDSXvB5MWDjYgRn9aUS8Aovezc4Sa5jjpk",
+  authDomain: "server4917.firebaseapp.com",
+  projectId: "server4917",
+  storageBucket: "server4917.firebasestorage.app",
+  messagingSenderId: "649468903348",
+  appId: "1:649468903348:web:e4278c2fc7f57a57f0bce1",
+  measurementId: "G-43VRX4K44R"
+};
+        // ============================================================
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Элемент для вывода постов
+        const postsContainer = document.getElementById('posts-container');
+
+        // Реальное время: слушаем коллекцию 'posts', сортируем по дате (новые сверху)
+        db.collection('posts')
+            .orderBy('createdAt', 'desc')
+            .onSnapshot((snapshot) => {
+                // Если нет постов — показываем заглушку
+                if (snapshot.empty) {
+                    postsContainer.innerHTML = `
+                        <div class="empty">
+                            <i class="far fa-folder-open"></i>
+                            <p>Пока нет публикаций</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Строим HTML всех карточек
+                let html = '';
+                snapshot.forEach(doc => {
+                    const post = doc.data();
+                    const postId = doc.id;
+
+                    // Форматирование даты
+                    let dateStr = 'Дата неизвестна';
+                    if (post.createdAt) {
+                        const date = post.createdAt.toDate();
+                        dateStr = date.toLocaleDateString('ru-RU', {
+                            day: 'numeric', month: 'long', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                    }
+
+                    // Блок изображения (если есть)
+                    const imageBlock = post.imageUrl 
+                        ? `<div class="post-image"><img src="${post.imageUrl}" alt="Изображение" loading="lazy"></div>`
+                        : '';
+
+                    // Блок файла (если есть)
+                    const fileBlock = post.fileUrl 
+                        ? `<div class="post-file">
+                                <i class="fas fa-download"></i>
+                                <a href="${post.fileUrl}" target="_blank" download>Скачать файл</a>
+                           </div>`
+                        : '';
+
+                    // Карточка целиком
+                    html += `
+                        <div class="post-card">
+                            <div class="post-title">${escapeHtml(post.title) || 'Без заголовка'}</div>
+                            ${post.description ? `<div class="post-description">${escapeHtml(post.description)}</div>` : ''}
+                            ${imageBlock}
+                            ${fileBlock}
+                            <div class="post-meta">
+                                <i class="far fa-calendar-alt"></i>
+                                <span>${dateStr}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                postsContainer.innerHTML = html;
+            }, (error) => {
+                console.error('Ошибка слушателя:', error);
+                postsContainer.innerHTML = `
+                    <div class="empty">
+                        <i class="fas fa-exclamation-triangle" style="color:#d83b01;"></i>
+                        <p>Не удалось загрузить публикации. Проверьте подключение.</p>
+                    </div>
+                `;
+            });
+
+        // Простая защита от XSS
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
